@@ -37,7 +37,7 @@ const Login = () => {
           }}
           providers={['google', 'github']}
           redirectTo={`${window.location.origin}/`}
-          onError={(error) => {
+          onAuthError={(error) => {
             toast({
               variant: "destructive",
               title: "Authentication Error",
