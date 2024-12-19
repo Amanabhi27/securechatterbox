@@ -22,10 +22,7 @@ export async function encryptMessage(message: string, publicKey: string) {
 }
 
 export async function decryptMessage(encryptedMessage: string, privateKey: string) {
-  const privateKeyObj = await openpgp.decryptKey({
-    privateKey: await openpgp.readPrivateKey({ armoredKey: privateKey }),
-    passphrase: ''
-  });
+  const privateKeyObj = await openpgp.readPrivateKey({ armoredKey: privateKey });
 
   const message = await openpgp.readMessage({
     armoredMessage: encryptedMessage,
