@@ -36,7 +36,7 @@ const Login = () => {
             }
           }}
           providers={['google', 'github']}
-          redirectTo={`${window.location.origin}/`}
+          redirectTo={window.location.origin}
           localization={{
             variables: {
               sign_in: {
