@@ -1,21 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Send, LogOut } from 'lucide-react';
 import ChatMessage from '@/components/ChatMessage';
 import { generateKeyPair, encryptMessage, decryptMessage } from '@/utils/encryption';
+import { useAuth } from '@/components/AuthProvider';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Message {
   id: string;
-  text: string;
-  sender: string;
-  timestamp: Date;
+  content: string;
+  sender_id: string;
+  created_at: string;
+  profiles: {
+    username: string;
+    avatar_url: string | null;
+  };
 }
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [keys, setKeys] = useState<{ privateKey: string; publicKey: string } | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const initializeKeys = async () => {
@@ -24,39 +41,109 @@ const Index = () => {
     };
 
     initializeKeys();
+    fetchMessages();
+    subscribeToMessages();
   }, []);
+
+  const fetchMessages = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select(`
+        id,
+        content,
+        sender_id,
+        created_at,
+        profiles (
+          username,
+          avatar_url
+        )
+      `)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      toast({
+        title: 'Error fetching messages',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setMessages(data || []);
+  };
+
+  const subscribeToMessages = () => {
+    const channel = supabase
+      .channel('public:messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          setMessages((prev) => [...prev, newMessage]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !keys) return;
+    if (!newMessage.trim() || !keys || !user) return;
 
-    const encryptedMessage = await encryptMessage(newMessage, keys.publicKey);
-    const decryptedMessage = await decryptMessage(encryptedMessage as string, keys.privateKey);
+    try {
+      const encryptedContent = await encryptMessage(newMessage, keys.publicKey);
+      
+      const { error } = await supabase.from('messages').insert({
+        content: newMessage,
+        encrypted_content: encryptedContent,
+        sender_id: user.id,
+      });
 
-    const message: Message = {
-      id: Date.now().toString(),
-      text: decryptedMessage as string,
-      sender: 'You',
-      timestamp: new Date(),
-    };
+      if (error) throw error;
 
-    setMessages((prev) => [...prev, message]);
-    setNewMessage('');
+      setNewMessage('');
+    } catch (error: any) {
+      toast({
+        title: 'Error sending message',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
+  if (!user) return null;
 
   return (
     <div className="flex flex-col h-screen max-w-3xl mx-auto p-4">
       <div className="bg-card rounded-lg shadow-lg flex-1 flex flex-col p-4 mb-4 overflow-hidden">
-        <h1 className="text-2xl font-bold mb-4">Secure Chat</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Secure Chat</h1>
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
         
         <div className="flex-1 overflow-y-auto space-y-4 mb-4">
           {messages.map((message) => (
             <ChatMessage
               key={message.id}
-              message={message.text}
-              sender={message.sender}
-              timestamp={message.timestamp}
-              isOwn={message.sender === 'You'}
+              message={message.content}
+              sender={message.profiles.username}
+              timestamp={new Date(message.created_at)}
+              isOwn={message.sender_id === user.id}
             />
           ))}
         </div>
