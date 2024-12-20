@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/cb1a785e-c730-4f0d-9c64-699ce17ffe57
+**URL**: https://securechatterbox.lovable.app
 
 ## How can I edit this code?
 
