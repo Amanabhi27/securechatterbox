@@ -17,7 +17,7 @@ const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
-      } else if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT') {
         navigate('/login');
       }
     });
@@ -37,6 +37,11 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 bg-card rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-center mb-6">Welcome to SecureChat</h1>
+        <Alert className="mb-6">
+          <AlertDescription>
+            Please note: Passwords must be at least 6 characters long.
+          </AlertDescription>
+        </Alert>
         <Auth
           supabaseClient={supabase}
           appearance={{ 
@@ -52,13 +57,6 @@ const Login = () => {
           }}
           providers={['google', 'github']}
           redirectTo={window.location.origin}
-          onError={(error) => {
-            toast({
-              variant: "destructive",
-              title: "Authentication Error",
-              description: error.message,
-            });
-          }}
           localization={{
             variables: {
               sign_in: {
