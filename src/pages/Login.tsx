@@ -18,8 +18,7 @@ const Login = () => {
       console.log('Detailed Auth Event:', {
         event,
         session,
-        user: session?.user,
-        error: session?.error
+        user: session?.user
       });
       
       if (event === 'SIGNED_IN') {
