@@ -17,10 +17,11 @@ const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
-      } else if (event === 'SIGN_IN_FAILED') {
+      } else if (event === 'USER_UPDATED' && !session) {
+        // This event occurs when login fails
         toast({
           title: "Login Failed",
-          description: "Please check your email and password and try again.",
+          description: "Invalid email or password. Please try again.",
           variant: "destructive",
         });
       }
@@ -43,7 +44,7 @@ const Login = () => {
         <h1 className="text-2xl font-bold text-center mb-6">Welcome to SecureChat</h1>
         <Alert className="mb-6">
           <AlertDescription>
-            Please sign in with your email and password to continue.
+            Please sign in with your email and password to continue. Make sure you have an existing account.
           </AlertDescription>
         </Alert>
         <Auth
