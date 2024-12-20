@@ -42,7 +42,10 @@ const Index = () => {
 
     initializeKeys();
     fetchMessages();
-    subscribeToMessages();
+    const unsubscribe = subscribeToMessages();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const fetchMessages = async () => {
@@ -82,9 +85,29 @@ const Index = () => {
           schema: 'public',
           table: 'messages',
         },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages((prev) => [...prev, newMessage]);
+        async (payload) => {
+          // Fetch the complete message data including profile information
+          const { data, error } = await supabase
+            .from('messages')
+            .select(`
+              id,
+              content,
+              sender_id,
+              created_at,
+              profiles (
+                username,
+                avatar_url
+              )
+            `)
+            .eq('id', payload.new.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching new message:', error);
+            return;
+          }
+
+          setMessages((prev) => [...prev, data]);
         }
       )
       .subscribe();
