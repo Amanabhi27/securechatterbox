@@ -15,7 +15,7 @@ const Login = () => {
   useEffect(() => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, 'Session:', session); // Enhanced debugging
+      console.log('Auth event:', event, 'Session:', session); // Debug logging
       if (event === 'SIGNED_IN') {
         navigate('/');
       } else if (event === 'USER_UPDATED' && !session) {
@@ -37,6 +37,8 @@ const Login = () => {
       navigate('/');
     }
   }, [user, navigate]);
+
+  const origin = window.location.origin;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -61,8 +63,9 @@ const Login = () => {
             }
           }}
           view="sign_in"
-          showLinks={false}
+          showLinks={true}
           providers={[]}
+          redirectTo={`${origin}/`}
         />
       </div>
     </div>
