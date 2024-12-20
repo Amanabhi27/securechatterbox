@@ -13,6 +13,19 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
+        navigate('/');
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  // If user is already logged in, redirect to main page
+  useEffect(() => {
     if (user) {
       navigate('/');
     }
