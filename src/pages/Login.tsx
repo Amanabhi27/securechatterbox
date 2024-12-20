@@ -15,14 +15,13 @@ const Login = () => {
   useEffect(() => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event); // Add this to debug
+      console.log('Auth event:', event, 'Session:', session); // Enhanced debugging
       if (event === 'SIGNED_IN') {
         navigate('/');
       } else if (event === 'USER_UPDATED' && !session) {
-        // This event occurs when login fails
         toast({
           title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
+          description: "Please check your credentials and try again. Make sure you've verified your email if required.",
           variant: "destructive",
         });
       }
@@ -45,7 +44,7 @@ const Login = () => {
         <h1 className="text-2xl font-bold text-center mb-6">Welcome to SecureChat</h1>
         <Alert className="mb-6">
           <AlertDescription>
-            Please sign in with your email and password to continue. Make sure you have an existing account.
+            Please sign in with your email and password. Make sure you have verified your email address if required.
           </AlertDescription>
         </Alert>
         <Auth
@@ -64,16 +63,6 @@ const Login = () => {
           view="sign_in"
           showLinks={false}
           providers={[]}
-          redirectTo={window.location.origin}
-          localization={{
-            variables: {
-              sign_in: {
-                email_label: 'Email',
-                password_label: 'Password',
-                button_label: 'Sign in',
-              }
-            },
-          }}
         />
       </div>
     </div>
