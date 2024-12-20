@@ -63,6 +63,11 @@ const Login = () => {
                 email_label: 'Email',
                 password_label: 'Password',
               },
+              sign_up: {
+                email_label: 'Email',
+                password_label: 'Password',
+                button_label: 'Sign up',
+              },
             },
           }}
         />
