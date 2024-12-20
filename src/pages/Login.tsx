@@ -5,20 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   useEffect(() => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
-      } else if (event === 'SIGNED_OUT') {
-        navigate('/login');
       }
     });
 
@@ -39,7 +35,7 @@ const Login = () => {
         <h1 className="text-2xl font-bold text-center mb-6">Welcome to SecureChat</h1>
         <Alert className="mb-6">
           <AlertDescription>
-            Please note: Passwords must be at least 6 characters long.
+            Please enter your email and password to login.
           </AlertDescription>
         </Alert>
         <Auth
@@ -55,19 +51,17 @@ const Login = () => {
               }
             }
           }}
-          providers={['google', 'github']}
+          view="sign_in"
+          showLinks={false}
+          providers={[]}
           redirectTo={window.location.origin}
           localization={{
             variables: {
               sign_in: {
                 email_label: 'Email',
                 password_label: 'Password',
-              },
-              sign_up: {
-                email_label: 'Email',
-                password_label: 'Password',
-                button_label: 'Sign up',
-              },
+                button_label: 'Sign in',
+              }
             },
           }}
         />
