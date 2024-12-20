@@ -17,12 +17,19 @@ const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
+      } else if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        // Show error toast for failed login attempts
+        toast({
+          title: "Login Error",
+          description: "Invalid email or password. Please try again.",
+          variant: "destructive",
+        });
       }
     });
 
     // Cleanup subscription on unmount
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   // If user is already logged in, redirect to main page
   useEffect(() => {
@@ -30,14 +37,6 @@ const Login = () => {
       navigate('/');
     }
   }, [user, navigate]);
-
-  const handleError = (error: Error) => {
-    toast({
-      title: "Login Error",
-      description: "Invalid email or password. Please try again.",
-      variant: "destructive",
-    });
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -64,7 +63,6 @@ const Login = () => {
           view="sign_in"
           showLinks={false}
           providers={[]}
-          onError={handleError}
           redirectTo={window.location.origin}
           localization={{
             variables: {
