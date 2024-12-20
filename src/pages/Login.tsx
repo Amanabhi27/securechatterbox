@@ -14,9 +14,11 @@ const Login = () => {
 
   useEffect(() => {
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
+      } else if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+        navigate('/login');
       }
     });
 
@@ -50,6 +52,13 @@ const Login = () => {
           }}
           providers={['google', 'github']}
           redirectTo={window.location.origin}
+          onError={(error) => {
+            toast({
+              variant: "destructive",
+              title: "Authentication Error",
+              description: error.message,
+            });
+          }}
           localization={{
             variables: {
               sign_in: {
