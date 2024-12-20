@@ -5,14 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
       }
@@ -28,6 +30,14 @@ const Login = () => {
       navigate('/');
     }
   }, [user, navigate]);
+
+  const handleError = (error: Error) => {
+    toast({
+      title: "Login Error",
+      description: "Invalid email or password. Please try again.",
+      variant: "destructive",
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -54,6 +64,7 @@ const Login = () => {
           view="sign_in"
           showLinks={false}
           providers={[]}
+          onError={handleError}
           redirectTo={window.location.origin}
           localization={{
             variables: {
